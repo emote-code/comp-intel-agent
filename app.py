@@ -79,22 +79,43 @@ class CompetitorIntelligenceModule:
             return "Analysis temporarily unavailable."
     
     def render_competitor_card(self, company_name, ticker):
-        """Render a compact competitor insight card"""
+        """Render a compact competitor insight card with manual trigger"""
         with st.container():
             col1, col2, col3 = st.columns([2, 3, 1])
             
             with col1:
                 st.subheader(f"🏢 {company_name}")
                 st.caption(f"Ticker: {ticker}")
+                
+                # Manual trigger button
+                if st.button(f"🔄 Refresh {company_name}", key=f"refresh_{company_name}"):
+                    st.session_state[f"trigger_{company_name}"] = True
             
             with col2:
-                with st.spinner(f"Analyzing {company_name}..."):
-                    articles = self.get_company_news(ticker, company_name)
-                    summary = self.generate_brief_summary(company_name, articles)
-                    st.write(summary)
-                    
-                    if articles:
-                        st.caption(f"📰 {len(articles)} recent articles")
+                # Only fetch data if manually triggered
+                if st.session_state.get(f"trigger_{company_name}", False):
+                    with st.spinner(f"Analyzing {company_name}..."):
+                        articles = self.get_company_news(ticker, company_name)
+                        summary = self.generate_brief_summary(company_name, articles)
+                        st.write(summary)
+                        
+                        if articles:
+                            st.caption(f"📰 {len(articles)} recent articles")
+                            # Store data in session state
+                            st.session_state[f"data_{company_name}"] = {
+                                'summary': summary,
+                                'articles': articles,
+                                'timestamp': datetime.now()
+                            }
+                else:
+                    # Show cached data or prompt
+                    cached_data = st.session_state.get(f"data_{company_name}")
+                    if cached_data:
+                        st.write(cached_data['summary'])
+                        st.caption(f"📰 {len(cached_data['articles'])} articles")
+                        st.caption(f"🕒 Last updated: {cached_data['timestamp'].strftime('%H:%M:%S')}")
+                    else:
+                        st.info("Click 'Refresh' to load latest insights")
             
             with col3:
                 if st.button("Deep Dive", key=f"dive_{company_name}"):
@@ -102,24 +123,26 @@ class CompetitorIntelligenceModule:
         
         # Show detailed view if requested
         if st.session_state.get(f"show_details_{company_name}", False):
-            with st.expander(f"📊 {company_name} Detailed Analysis", expanded=True):
-                articles = self.get_company_news(ticker, company_name, limit=10)
-                
-                col1, col2 = st.columns([1, 1])
-                with col1:
-                    st.subheader("🤖 Full AI Analysis")
-                    full_summary = self.generate_full_summary(company_name, articles)
-                    st.write(full_summary)
-                
-                with col2:
-                    st.subheader("📰 Recent Headlines")
-                    for article in articles[:5]:
-                        st.write(f"**[{article['title']}]({article['url']})**")
-                        st.caption(f"Source: {article['source']}")
-                
-                if st.button("Close Details", key=f"close_{company_name}"):
-                    st.session_state[f"show_details_{company_name}"] = False
-                    st.rerun()
+            cached_data = st.session_state.get(f"data_{company_name}")
+            if cached_data:
+                with st.expander(f"📊 {company_name} Detailed Analysis", expanded=True):
+                    col1, col2 = st.columns([1, 1])
+                    with col1:
+                        st.subheader("🤖 Full AI Analysis")
+                        full_summary = self.generate_full_summary(company_name, cached_data['articles'])
+                        st.write(full_summary)
+                    
+                    with col2:
+                        st.subheader("📰 Recent Headlines")
+                        for article in cached_data['articles'][:5]:
+                            st.write(f"**[{article['title']}]({article['url']})**")
+                            st.caption(f"Source: {article['source']}")
+                    
+                    if st.button("Close Details", key=f"close_{company_name}"):
+                        st.session_state[f"show_details_{company_name}"] = False
+                        st.rerun()
+            else:
+                st.warning("Please refresh data first before viewing details")
     
     def generate_full_summary(self, company_name, articles):
         """Generate detailed summary for deep dive"""
@@ -145,6 +168,25 @@ class CompetitorIntelligenceModule:
         """Render the complete competitor intelligence module"""
         st.header("📈 Competitor Intelligence")
         st.markdown("*AI-powered insights on key insurance competitors*")
+        
+        # Add refresh all button
+        col1, col2, col3 = st.columns([1, 1, 3])
+        with col1:
+            if st.button("🔄 Refresh All Data", type="primary"):
+                for company_name in self.competitors.keys():
+                    st.session_state[f"trigger_{company_name}"] = True
+                st.rerun()
+        
+        with col2:
+            if st.button("🗑️ Clear All Cache"):
+                for company_name in self.competitors.keys():
+                    if f"data_{company_name}" in st.session_state:
+                        del st.session_state[f"data_{company_name}"]
+                    if f"trigger_{company_name}" in st.session_state:
+                        del st.session_state[f"trigger_{company_name}"]
+                st.rerun()
+        
+        st.markdown("---")
         
         for company_name, ticker in self.competitors.items():
             self.render_competitor_card(company_name, ticker)
