@@ -68,7 +68,7 @@ class CompetitorIntelligenceModule:
             response = self.azure_client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "Create a 2-sentence competitive intelligence summary focusing on key business developments and market implications."},
+                    {"role": "system", "content": "Create a 2-sentence competitive intelligence summary including key business developments with a focus on potential impacts on marketing activity."},
                     {"role": "user", "content": news_text}
                 ],
                 max_tokens=100,
@@ -154,7 +154,7 @@ class CompetitorIntelligenceModule:
             response = self.azure_client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a competitive intelligence analyst. Provide detailed analysis of financial performance, strategic moves, market position, and competitive implications."},
+                    {"role": "system", "content": "You are a marketing competitive intelligence analyst. Provide a two sentence high level overview of business updates with a focus on shifts in business strategy. Then provide a separate two-or-three sentence overview of insights related to marketing activity, potential opportunities they may pursue to acquire customers or overall position in the marketplace in comparison to competitors. Your goal is to provide insightful snippets of information that would be relevant to a direct marketing team."},
                     {"role": "user", "content": news_text}
                 ],
                 max_tokens=300,
