@@ -154,11 +154,11 @@ class CompetitorIntelligenceModule:
             response = self.azure_client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a marketing competitive intelligence analyst. Provide a two sentence high level overview of business updates with a focus on shifts in business strategy. Then provide a separate two-or-three sentence overview of insights related to marketing activity, potential opportunities they may pursue to acquire customers or overall position in the marketplace in comparison to competitors. Your goal is to provide insightful snippets of information that would be relevant to a direct marketing team."},
+                    {"role": "system", "content": "You are a marketing competitive intelligence analyst. Provide a two sentence high level overview of business updates with a focus on shifts in business strategy. Then provide a separate two-or-three sentence overview of insights related to marketing activity, potential opportunities they may pursue to acquire customers or overall position in the marketplace in comparison to competitors. Your goal is to provide insightful snippets of information that would be relevant to a direct marketing team. Keep responses concise and under 150 words total."},
                     {"role": "user", "content": news_text}
                 ],
-                max_tokens=300,
-                temperature=0.2
+                max_tokens=150,
+                temperature=0.3
             )
             return response.choices[0].message.content
         except:
