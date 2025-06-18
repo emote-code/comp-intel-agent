@@ -71,8 +71,8 @@ class CompetitorIntelligenceModule:
                     {"role": "system", "content": "Create a 2-sentence competitive intelligence summary including key business developments with a focus on potential impacts on marketing activity."},
                     {"role": "user", "content": news_text}
                 ],
-                max_tokens=100,
-                temperature=0.3
+                max_tokens=200,
+                temperature=0.2
             )
             return response.choices[0].message.content
         except:
@@ -158,7 +158,7 @@ class CompetitorIntelligenceModule:
                     {"role": "user", "content": news_text}
                 ],
                 max_tokens=300,
-                temperature=0.3
+                temperature=0.2
             )
             return response.choices[0].message.content
         except:
